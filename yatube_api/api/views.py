@@ -12,29 +12,15 @@ from .serializers import CommentSerializer, PostSerializer, GroupSerializer
 class PostViewSet(viewsets.ModelViewSet):
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated & IsOwnerOrReadOnly]
-
-    def get_queryset(self):
-        pk = self.kwargs.get('pk')
-        if not pk:
-            return Post.objects.all()
-        return Post.objects.filter(id=pk)
+    queryset = Post.objects.all()
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
 
-class GroupViewSet(viewsets.ModelViewSet):
+class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = GroupSerializer
-
-    def get_queryset(self):
-        pk = self.kwargs.get('pk')
-        if not pk:
-            return Group.objects.all()
-        return Group.objects.filter(id=pk)
-
-    def create(self, request):
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
+    queryset = Group.objects.all()
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
@@ -43,8 +29,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         post_id = self.kwargs.get('post_id')
         post = get_object_or_404(Post, pk=post_id)
-        queryset = post.comments.all()
-        return queryset
+        return post.comments.all()
 
     def perform_create(self, serializer):
         serializer.save(
